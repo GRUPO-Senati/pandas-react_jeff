@@ -2,26 +2,160 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import fondoImagen from '../assets/fondo-montana.jpg';
 
+// ==========================================
+// 1. SUBCOMPONENTE: PRUEBA DE RECONOCIMIENTO
+// ==========================================
+const PruebaFacial: React.FC = () => {
+  const [isScanning, setIsScanning] = useState(false);
+
+  const handleStartScan = () => {
+    setIsScanning(true);
+    // Aquí conectarás tu API / backend para autenticar por rostro
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.2rem' }}>
+      <div style={facialStyles.scanBox}>
+        <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+          {isScanning ? '🔍 Escaneando rostro...' : 'Posiciona tu rostro frente a la cámara'}
+        </p>
+
+        {/* Espacio reservado para el <video> o canvas de la cámara */}
+        <div style={facialStyles.videoPlaceholder}>
+          📷 Área de cámara / Video Stream
+        </div>
+
+        <button type="button" onClick={handleStartScan} style={facialStyles.scanBtn}>
+          {isScanning ? 'Procesando...' : 'Iniciar Escaneo Facial'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// 2. SUBCOMPONENTE: REGISTRO FACIAL
+// ==========================================
+const RegistroFacial: React.FC = () => {
+  const [nombre, setNombre] = useState('');
+  const [codigo, setCodigo] = useState('');
+  const [rol, setRol] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Aquí conectarás la lógica para guardar en tu base de datos
+  };
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={facialStyles.cameraBox}>
+        <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>📷 Captura de rostro para registro</p>
+      </div>
+
+      <div style={facialStyles.inputGroup}>
+        <label style={facialStyles.label}>Nombre completo</label>
+        <input
+          type="text"
+          placeholder="Ingrese su nombre"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          style={facialStyles.input}
+          required
+        />
+      </div>
+
+      <div style={facialStyles.inputGroup}>
+        <label style={facialStyles.label}>Código / DNI</label>
+        <input
+          type="text"
+          placeholder="Ingrese código de usuario"
+          value={codigo}
+          onChange={(e) => setCodigo(e.target.value)}
+          style={facialStyles.input}
+          required
+        />
+      </div>
+
+      <div style={facialStyles.inputGroup}>
+        <label style={facialStyles.label}>Rol / Cargo</label>
+        <input
+          type="text"
+          placeholder="Ingrese rol"
+          value={rol}
+          onChange={(e) => setRol(e.target.value)}
+          style={facialStyles.input}
+          required
+        />
+      </div>
+
+      <button type="submit" style={facialStyles.saveBtn}>
+        REGISTRAR ROSTRO
+      </button>
+    </form>
+  );
+};
+
+// ==========================================
+// 3. SUBCOMPONENTE: MODAL CONTENEDOR
+// ==========================================
+interface ModalProps {
+  onClose: () => void;
+}
+
+const ReconocimientoFacialModal: React.FC<ModalProps> = ({ onClose }) => {
+  const [activeTab, setActiveTab] = useState<'prueba' | 'registro'>('prueba');
+
+  return (
+    <div style={facialStyles.overlay}>
+      <div style={facialStyles.modalCard}>
+        <div style={facialStyles.header}>
+          <div style={facialStyles.tabsContainer}>
+            <button
+              type="button"
+              style={activeTab === 'prueba' ? facialStyles.activeTab : facialStyles.tab}
+              onClick={() => setActiveTab('prueba')}
+            >
+              INICIAR SESIÓN
+            </button>
+            <button
+              type="button"
+              style={activeTab === 'registro' ? facialStyles.activeTab : facialStyles.tab}
+              onClick={() => setActiveTab('registro')}
+            >
+              REGISTRAR ROSTRO
+            </button>
+          </div>
+          <button type="button" onClick={onClose} style={facialStyles.closeBtn}>✕</button>
+        </div>
+
+        <div style={facialStyles.body}>
+          {activeTab === 'prueba' ? <PruebaFacial /> : <RegistroFacial />}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ==========================================
+// 4. COMPONENTE PRINCIPAL: LOGIN
+// ==========================================
 const Login: React.FC = () => {
- const [email, setEmail] = useState('');
-const [password, setPassword] = useState(''); 
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState(''); 
   const [error, setError] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  setError('');
+    e.preventDefault();
+    setError('');
 
-  if (email === 'admin@empresa.com' && password === '123456') {
-    // 1. Guarda la sesión activa
-    localStorage.setItem('isAuthenticated', 'true');
-    
-    // 2. Redirige a la ruta principal del Dashboard (/admin)
-    navigate('/admin');
-  } else {
-    setError('Credenciales incorrectas.');
-  
-};
+    if (email === 'admin@empresa.com' && password === '123456') {
+      localStorage.setItem('isAuthenticated', 'true');
+      navigate('/admin');
+    } else {
+      setError('Credenciales incorrectas.');
+    }
   };
 
   return (
@@ -40,6 +174,15 @@ const [password, setPassword] = useState('');
         </div>
 
         <div style={styles.rightSection}>
+          {/* Botón para abrir el modal flotante */}
+          <button 
+            type="button" 
+            onClick={() => setIsModalOpen(true)} 
+            style={styles.openModalButton}
+          >
+            INICIAR CON RECONOCIMIENTO FACIAL
+          </button>
+
           <div style={styles.glassFormCard}>
             <h2 style={styles.formTitle}>INICIAR SESIÓN</h2>
 
@@ -77,11 +220,20 @@ const [password, setPassword] = useState('');
           </div>
         </div>
       </div>
+
+      {/* Renderizado condicional del modal */}
+      {isModalOpen && (
+        <ReconocimientoFacialModal onClose={() => setIsModalOpen(false)} />
+      )}
     </div>
   );
 };
 
-const styles: { [key: string]: React.CSSProperties } = {
+// ==========================================
+// ESTILOS
+// ==========================================
+
+const styles: Record<string, React.CSSProperties> = {
   heroContainer: {
     position: 'relative',
     minHeight: '85vh',
@@ -149,7 +301,22 @@ const styles: { [key: string]: React.CSSProperties } = {
     flex: '0 1 380px',
     width: '100%',
     display: 'flex',
-    justifyContent: 'center',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1rem',
+  },
+  openModalButton: {
+    width: '100%',
+    padding: '0.8rem 1rem',
+    borderRadius: '14px',
+    border: '1px solid rgba(251, 191, 36, 0.5)',
+    background: 'rgba(15, 23, 42, 0.85)',
+    color: '#fbbf24',
+    fontWeight: '700',
+    fontSize: '0.82rem',
+    letterSpacing: '0.5px',
+    cursor: 'pointer',
+    backdropFilter: 'blur(8px)',
   },
   glassFormCard: {
     width: '100%',
@@ -217,6 +384,133 @@ const styles: { [key: string]: React.CSSProperties } = {
     letterSpacing: '1px',
     cursor: 'pointer',
     boxShadow: '0 16px 30px rgba(245, 158, 11, 0.35)',
+  },
+};
+
+const facialStyles: Record<string, React.CSSProperties> = {
+  overlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    backdropFilter: 'blur(8px)',
+    zIndex: 9999,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCard: {
+    width: '90%',
+    maxWidth: '550px',
+    backgroundColor: '#0f172a',
+    border: '1px solid rgba(147, 197, 253, 0.3)',
+    borderRadius: '24px',
+    padding: '1.5rem',
+    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+    paddingBottom: '0.8rem',
+  },
+  tabsContainer: { display: 'flex', gap: '0.5rem' },
+  tab: {
+    background: 'transparent',
+    border: 'none',
+    color: '#94a3b8',
+    padding: '0.5rem 1rem',
+    cursor: 'pointer',
+    fontWeight: '700',
+    fontSize: '0.85rem',
+  },
+  activeTab: {
+    background: 'rgba(251, 191, 36, 0.15)',
+    border: 'none',
+    borderBottom: '2px solid #fbbf24',
+    color: '#fbbf24',
+    padding: '0.5rem 1rem',
+    cursor: 'pointer',
+    fontWeight: '800',
+    fontSize: '0.85rem',
+    borderRadius: '6px 6px 0 0',
+  },
+  closeBtn: {
+    background: 'transparent',
+    border: 'none',
+    color: '#94a3b8',
+    fontSize: '1.2rem',
+    cursor: 'pointer',
+  },
+  body: { paddingTop: '1.2rem' },
+  scanBox: {
+    width: '100%',
+    padding: '1.2rem',
+    background: '#1e293b',
+    borderRadius: '16px',
+    textAlign: 'center',
+    border: '1px solid #334155',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.8rem',
+  },
+  videoPlaceholder: {
+    width: '100%',
+    height: '200px',
+    background: '#0f172a',
+    borderRadius: '12px',
+    border: '1px dashed #475569',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#64748b',
+    fontSize: '0.85rem',
+  },
+  scanBtn: {
+    marginTop: '0.5rem',
+    padding: '0.7rem 1.4rem',
+    background: '#fbbf24',
+    color: '#0f172a',
+    border: 'none',
+    borderRadius: '999px',
+    fontWeight: '800',
+    cursor: 'pointer',
+  },
+  cameraBox: {
+    width: '100%',
+    height: '160px',
+    background: '#1e293b',
+    borderRadius: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px dashed #334155',
+  },
+  inputGroup: { display: 'flex', flexDirection: 'column', gap: '0.4rem' },
+  label: { fontSize: '0.75rem', fontWeight: '700', color: '#dbeafe' },
+  input: {
+    padding: '0.75rem',
+    borderRadius: '10px',
+    border: '1px solid rgba(147, 197, 253, 0.28)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    color: '#0f172a',
+    fontSize: '0.9rem',
+    outline: 'none',
+  },
+  saveBtn: {
+    marginTop: '0.5rem',
+    padding: '0.8rem',
+    borderRadius: '999px',
+    border: 'none',
+    background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+    color: '#0f172a',
+    fontWeight: '800',
+    fontSize: '0.85rem',
+    cursor: 'pointer',
   },
 };
 
